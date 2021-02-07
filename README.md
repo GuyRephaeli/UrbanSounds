@@ -2,7 +2,7 @@
 * To test the project, first download the UrbanSound8K dataset and unzip it inside the base directory of the project.
 
 ## Initial Process
-First looking at the dataset and the hint, I realized I should first look at existing approaches for: 
+Looking at the dataset and the hint, I realized I should first look at existing approaches for: 
 1. Audio classification - Would be useful since this is the problem I was asked to solve. 
 2. Transfer learning - The hint basically told me to do it, but also the size of the dataset seemed way too small to be 
 the only training data for the model. 
@@ -22,9 +22,7 @@ That lead me to believe the the approach from the blog post is the way to go, bu
 I wanted to check some other ANN and CNN models I had heard of for sequential data modeling:
 1. TCNs - I have previously heard of TCNs as a state of the art approach for modeling sequential data with CNNS. I ruled
 it out because it is designed for sequence2sequence modeling. 
-2. Transformers - I heard about Transfomers as a possible replacement for LSTMs. I ruled it out since it is designed 
-for attentions models. 
-3. TDNNs - I heard about TDNNs in the context of audio classification a few years ago. I ruled it out since it is more 
+2. TDNNs - I heard about TDNNs in the context of audio classification a few years ago. I ruled it out since it is more 
 obscure than CNNs, hence finding pretrained models for transfer learning would be much harder.
 
 
@@ -33,9 +31,9 @@ I finally decided to go with the model proposed in the first blog post.
 Before I started to implement, I first wanted to find out some things about the data. Specifically, I wanted to know if
 there are any class imbalances or any major differences in the size of the folds. While the folds seemed relatively even,
 the classes did not - 8 of the 10 classes had size ~1000 but 2 had size ~400. This imbalance might not be significant,
-but maybe oversampling the 2 smaller classes (or undersampling the other 8) might be beneficial during training.
+but oversampling the 2 smaller classes (or undersampling the other 8) might be beneficial during training.
 ## Implementation - Take 1
-First, I wanted a naive implementation of the model described in the blog post, without any modifications. The results 
+First, I wanted a naive implementation of the model described in the blog post. The results 
 of that implementation will indicate which changes I would like to introduce to the model.
 Since the implementation in the blog post used Pytorch, I decided to also use it to not waste time on the finding the 
 equivalent tensorflow functions.  
@@ -45,8 +43,10 @@ not change between the different folds and each fold requires this process to be
 to run it one time on the entire dataset at the beginning and save the results in a folder next to the audio folder.  
 The next part is creating the CNN to classify the spectrograms to the different classes. I chose to use a pretrained 
 ResNet18, train it for 6 epochs with batches of size 8 just like the blog post. I had two main difference from the blog:
-1. Instead of using SGD with momentum and decreasing learning rate, I used ADAM with a constant learning rate.
-2. Instead of training the weights for the entire network, I trained only the weights for the first and last layers.
+1. Instead of using SGD with momentum and decreasing learning rate, I used ADAM with a constant learning rate. I wanted
+to use ADAM since I know it to be a very efficient optimizer that does not require a lot of tuning.
+2. Instead of training the weights for the entire network, I trained only the weights for the first and last layers. My
+intuition was that reducing the number of trained parameters might be good to reduce overfitting as shortening the sun time.
 
 ### Results 
 Train Accuracy: `0.7079791973237144`  
@@ -69,7 +69,7 @@ Test Confusion:
 ### Analysis
 The first 3 things I noticed:
 1. The test accuracy is much lower than the accuracy presented in the blog post.   
-2. The train accuracy is much higher than the test accuracy. That may be a result of overfitting.  
+2. The train accuracy is much higher than the test accuracy.  
 3. The model actually performed pretty well on the two smaller classes (Car Horn, Gun Shot).  
 
 The second point may imply that there is some overfitting. The third point implies that there is no need for oversampling 
@@ -99,9 +99,12 @@ Test Confusion:
 
 ### Analysis
 Unsurprisingly, the accuracy is now much higher for both train and test, but at the cost of a (slightly) longer run time.  
-Still, the train accuracy is much higher than the test accuracy.  
+The train accuracy is much higher than the test accuracy - even more than before. Training all the network parameters
+may have actually made the model overfit even more than before, but since the whole training was much better, the test 
+accuracy did improve.  
 It is now clearer that the model tends to get especially confused between **Air Conditioner** and **Engine Idling**. 
-That is understandable since these are very similar sounds.
+That is understandable since these are very similar sounds. There are several other classes that are confusing to the 
+model (i.e **Drilling**, **Jackhammer**).
 
 ## Implementation - Take 3
 This time I also changed the optimizer to the SGD with momentum from the blog (same parameters). The only difference is
@@ -128,14 +131,19 @@ Test Confusion:
 ### Analysis
 This model improved upon the last one and was even able to alleviate some of the confusion between **Air Conditioner** 
 and **Engine Idling**, but it is still not as good as the model shown in the blog post. That is reasonable since reducing
-the learning rate during training can improve a model dramatically.  
+the learning rate during training can help the model converge to the minimum instead of wandering around it.  
 On the other hand, the gap between the train accuracy and the test accuracy has increased (the result of better training)
-so the overfitting should be addressed.
+so the overfitting should be addressed.  
+
+It is clear that the parameters chosen in the blog post where well thought of, so it is safe to assume that the author 
+did some parameter tuning to achieve those results.
 
 ## Future work
-The current model can be further improved by fine-tuning the hyper parameters via greed search.   
+The current model can be further improved by fine-tuning the hyper parameters via greed search.  
 Furthermore, fine-tuning the hyper parameters of the preprocessing stage in the same manner would be beneficial as well.  
-One could also try different network architectures, different spectrogram transformation and also data augmentation.
+One could also try different network architectures, different spectrogram transformation and also data augmentation.  
+To improve the convergence one could first train a frozen model with a relatively large learning rate and then unfreeze
+all te weights and continue training with a smaller learning rate.  
 More interesting improvements can be achieved by specifically targeting the overfitting and the confusion between 
 **Air Conditioner** and **Engine Idling**.  
 To address overfitting one can utilize an ensemble model. A very simple and effective way to do so would be bagging.  

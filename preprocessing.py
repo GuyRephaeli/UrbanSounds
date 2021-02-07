@@ -10,6 +10,15 @@ from torch import Tensor, mean
 
 
 def preprocess(audio_path: str, spectrogram_path: str, folds: List[int], resample_rate: int, mel_filters: int, seconds: int):
+    """
+    Create spectrograms from the audio data in the audio path and write them to the spectrogram path.
+    :param audio_path: path to audio files
+    :param spectrogram_path: path to write the spectrogram files
+    :param folds: list of all fld indices
+    :param resample_rate: fixed sample rate for preprocessing
+    :param mel_filters: number of mel filters for the transformation
+    :param seconds: fixed signal length
+    """
     print("This might take a while...")
     os.mkdir(spectrogram_path)
     for fold in folds:

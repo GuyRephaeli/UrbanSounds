@@ -12,6 +12,16 @@ import numpy as np
 
 
 def test_model(model_factory: ModelFactory, spectrogram_path: str, all_folds: List[int]) -> Tuple[float, float, np.ndarray]:
+    """
+    Test a specific model on all folds.
+    For each fold a new model is trained on all other folds and then tested on the
+    fold and on all the other folds to yield train accuracy, test accuracy and test confusion matrix.
+    The result for all the folds are then aggregated: accuracies are averaged and confusion matrices are summed.
+    :param model_factory: a factory for a specific model
+    :param spectrogram_path: the path for the preprocessed data
+    :param all_folds: list of all fold indices
+    :return: train accuracy, test accuracy and test confusion matrix
+    """
     train_folds_of_fold = {f: other_folds(f, all_folds) for f in all_folds}
     files_of_fold = {f: files_in_fold(f, spectrogram_path) for f in all_folds}
     data_of_fold = {fold: load_data(files) for fold, files in files_of_fold.items()}

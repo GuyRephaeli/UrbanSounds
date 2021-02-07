@@ -7,6 +7,10 @@ from torch.utils.data import DataLoader
 
 
 class Model(object):
+    """
+    A class to represent a full model. Exposes fit for training and predict for prediction.
+    This class enables flexible composition of model parts such as data loader, optimizer and network architecture.
+    """
     def __init__(self, device,
                  nn: Module,
                  loader_for_data: Callable[[List[Tensor], List[int]], DataLoader[Tuple[Tensor, int]]],
@@ -47,6 +51,9 @@ class Model(object):
 
 
 class ModelFactory(object):
+    """
+    A class for creating identical models that can be trained independently.
+    """
     def __init__(self, device,
                  create_nn: Callable[[], Module],
                  loader_for_data: Callable[[List[Tensor], List[int]], DataLoader[Tuple[Tensor, int]]],
