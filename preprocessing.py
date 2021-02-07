@@ -10,6 +10,7 @@ from torch import Tensor, mean
 
 
 def preprocess(audio_path: str, spectrogram_path: str, folds: List[int], resample_rate: int, mel_filters: int, seconds: int):
+    print("This might take a while...")
     os.mkdir(spectrogram_path)
     for fold in folds:
         file_names = audio_files_in_fold(fold, audio_path)

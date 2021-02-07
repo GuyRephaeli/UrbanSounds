@@ -1,4 +1,6 @@
 # UrbanSounds
+* To test the project, first download the UrbanSound8K dataset and unzip it inside the base directory of the project.
+
 ## Initial Process
 First looking at the dataset and the hint, I realized I should first look at existing approaches for: 
 1. Audio classification - Would be useful since this is the problem I was asked to solve. 
